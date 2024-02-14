@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
-
+from datetime import datetime
 
 class Cliente(models.Model):
     _name = 'nutrete.cliente'
@@ -12,7 +12,30 @@ class Cliente(models.Model):
     foto = fields.Binary(string="Foto")
     historial = fields.Text(string="Historial")
     motivo_consulta = fields.Text(string="Motivo de Consulta")
+    fecha_nacimiento = fields.Date(string="Fecha de Nacimiento")
+    peso = fields.Float(string="Peso")
+    altura = fields.Float(string="Altura")
+    imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
+    edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
 
+    @api.depends('peso', 'altura')
+    def _compute_imc(self):
+        for cliente in self:
+            if cliente.peso and cliente.altura:
+                cliente.imc = cliente.peso / (cliente.altura * cliente.altura)
+            else:
+                cliente.imc = 0.0
+
+    @api.depends('fecha_nacimiento')
+    def _compute_edad(self):
+        today = datetime.today()
+        for cliente in self:
+            if cliente.fecha_nacimiento:
+                fecha_nacimiento_str = cliente.fecha_nacimiento.strftime("%Y-%m-%d")
+                born = datetime.strptime(fecha_nacimiento_str, "%Y-%m-%d")
+                cliente.edad = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+            else:
+                cliente.edad = 0
 
 class Dietista(models.Model):
     _name = 'nutrete.dietista'
@@ -74,6 +97,27 @@ class Revision(models.Model):
                                    ('regular', 'Regular'),
                                    ('mala', 'Mala')],
                                   string="Evolución")
+    cliente_id = fields.Many2one('nutrete.cliente', related='dieta_id.cliente_id', store=True)
+    imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
+    edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
+
+    @api.depends('peso', 'cliente_id.altura')
+    def _compute_imc(self):
+        for revision in self:
+            if revision.peso and revision.cliente_id.altura:
+                revision.imc = revision.peso / (revision.cliente_id.altura * revision.cliente_id.altura)
+            else:
+                revision.imc = 0.0
+
+    @api.depends('cliente_id.fecha_nacimiento')
+    def _compute_edad(self):
+        for revision in self:
+            if revision.cliente_id.fecha_nacimiento:
+                born = revision.cliente_id.fecha_nacimiento
+                today = fields.Date.today()
+                revision.edad = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+            else:
+                revision.edad = 0
 
 
 class Taller(models.Model):

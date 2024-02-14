@@ -77,6 +77,33 @@
                         <field name="foto"/>
                         <field name="historial"/>
                         <field name="motivo_consulta"/>
+                        <field name="fecha_nacimiento"/>
+                        <field name="peso"/>
+                        <field name="altura"/>
+                        <field name="imc"/>
+                        <field name="edad"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Vista de formulario para el modelo nutrete.revision -->
+    <record id="view_revision_form" model="ir.ui.view">
+        <field name="name">revision.form</field>
+        <field name="model">nutrete.revision</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="fecha"/>
+                        <field name="hora"/>
+                        <field name="dieta_id"/>
+                        <field name="peso"/>
+                        <field name="comentarios"/>
+                        <field name="evolucion"/>
+                        <field name="cliente_id"/>
+                        <field name="imc"/>
+                        <field name="edad"/>
                     </group>
                 </sheet>
             </form>
