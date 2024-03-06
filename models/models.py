@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 
+# -*- coding: utf-8 -*-
+
+
+
+
 from odoo import models, fields, api
-from datetime import datetime
+from odoo.exceptions import ValidationError
+from odoo import _
+import datetime
+import logging
+import re
 
 class Cliente(models.Model):
     _name = 'nutrete.cliente'
-    _description = 'Cliente de Nutrete'
+    _inherit = 'res.partner'
+    is_cliente = fields.Boolean()
 
-    name = fields.Char(string="Nombre")
     dni = fields.Char(string="DNI")
-    foto = fields.Binary(string="Foto")
     historial = fields.Text(string="Historial")
     motivo_consulta = fields.Text(string="Motivo de Consulta")
     fecha_nacimiento = fields.Date(string="Fecha de Nacimiento")
@@ -17,24 +25,44 @@ class Cliente(models.Model):
     altura = fields.Float(string="Altura")
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
+    sexo = fields.Selection([
+        ('masculino', 'Masculino'),
+        ('femenino', 'Femenino'),
+        ('otro', 'Otro')
+    ], string="Sexo")
+    
+    @api.onchange('is_cliente')
+    def _onchange_is_dev(self):
+        categories = self.env['res.partner.category'].search([('name','=','Cliente')])
+        if len(categories) > 0:
+            category = categories[0]
+        else:
+            category = self.env['res.partner.category'].create({'name':'Cliente'})
+        self.category_id = [(4, category.id)] 
 
     @api.depends('peso', 'altura')
     def _compute_imc(self):
         for cliente in self:
-            if cliente.peso and cliente.altura:
-                cliente.imc = cliente.peso / (cliente.altura * cliente.altura)
-            else:
+            try:
+                if cliente.peso and cliente.altura:
+                    cliente.imc = cliente.peso / (cliente.altura * cliente.altura)
+                else:
+                    cliente.imc = 0.0
+            except ZeroDivisionError:
                 cliente.imc = 0.0
 
     @api.depends('fecha_nacimiento')
     def _compute_edad(self):
         today = datetime.today()
         for cliente in self:
-            if cliente.fecha_nacimiento:
-                fecha_nacimiento_str = cliente.fecha_nacimiento.strftime("%Y-%m-%d")
-                born = datetime.strptime(fecha_nacimiento_str, "%Y-%m-%d")
-                cliente.edad = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            else:
+            try:
+                if cliente.fecha_nacimiento:
+                    fecha_nacimiento_str = cliente.fecha_nacimiento.strftime("%Y-%m-%d")
+                    born = datetime.strptime(fecha_nacimiento_str, "%Y-%m-%d")
+                    cliente.edad = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+                else:
+                    cliente.edad = 0
+            except ValueError:
                 cliente.edad = 0
 
 class Dietista(models.Model):
@@ -43,7 +71,6 @@ class Dietista(models.Model):
 
     name = fields.Char(string="Nombre")
     dni = fields.Char(string="DNI")
-    foto = fields.Binary(string="Foto")
     especialidad = fields.Selection([('vegetariana', 'Dieta Vegetariana'),
                                      ('paleo', 'Dieta Paleo'),
                                      ('detox', 'Dieta Detox'),
@@ -58,7 +85,6 @@ class Nutricionista(models.Model):
 
     name = fields.Char(string="Nombre")
     dni = fields.Char(string="DNI")
-    foto = fields.Binary(string="Foto")
     especialidad = fields.Selection([('deportiva', 'Nutrición Deportiva'),
                                      ('pediatrica', 'Nutrición Pediátrica'),
                                      ('clinica', 'Nutrición Clínica')],
@@ -74,14 +100,6 @@ class Dieta(models.Model):
     dietista_id = fields.Many2one('nutrete.dietista', string="Dietista")
     revision_ids = fields.One2many('nutrete.revision', 'dieta_id', string="Revisiones")
 
-    @api.model
-    def create(self, vals):
-        if 'dietista_id' in vals:
-            dietista = self.env['nutrete.dietista'].browse(vals['dietista_id'])
-            if dietista:
-                vals['nutricionista_id'] = dietista.nutricionista_id.id
-        return super(Dieta, self).create(vals)
-
 
 class Revision(models.Model):
     _name = 'nutrete.revision'
@@ -92,6 +110,11 @@ class Revision(models.Model):
     dieta_id = fields.Many2one('nutrete.dieta', string="Dieta")
     peso = fields.Float(string="Peso")
     comentarios = fields.Text(string="Comentarios")
+    actividad_fisica = fields.Selection([('sedentario', 'Sedentario'),
+                                        ('ligero', 'Ligero'),
+                                        ('moderado', 'Moderado'),
+                                        ('activo', 'Activo')],
+                                        string="Actividad Física")
     evolucion = fields.Selection([('excelente', 'Excelente'),
                                    ('buena', 'Buena'),
                                    ('regular', 'Regular'),
@@ -100,6 +123,30 @@ class Revision(models.Model):
     cliente_id = fields.Many2one('nutrete.cliente', related='dieta_id.cliente_id', store=True)
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
+    calorias_diarias_recomendadas = fields.Integer(string="Calorías Diarias Recomendadas", compute='_compute_calorias_diarias', store=True)
+
+    @api.depends('cliente_id', 'peso', 'actividad_fisica')
+    def _compute_calorias_diarias(self):
+        for revision in self:
+            if revision.cliente_id and revision.peso and revision.actividad_fisica:
+                # Cálculo de calorías diarias recomendadas basado en la fórmula de Harris-Benedict
+                if revision.cliente_id.sexo == 'masculino':
+                    bmr = 88.362 + (13.397 * revision.peso) + (4.799 * revision.cliente_id.altura) - (5.677 * revision.edad)
+                else:
+                    bmr = 447.593 + (9.247 * revision.peso) + (3.098 * revision.cliente_id.altura) - (4.330 * revision.edad)
+                
+                if revision.actividad_fisica == 'sedentario':
+                    revision.calorias_diarias_recomendadas = int(bmr * 1.2)
+                elif revision.actividad_fisica == 'ligero':
+                    revision.calorias_diarias_recomendadas = int(bmr * 1.375)
+                elif revision.actividad_fisica == 'moderado':
+                    revision.calorias_diarias_recomendadas = int(bmr * 1.55)
+                elif revision.actividad_fisica == 'activo':
+                    revision.calorias_diarias_recomendadas = int(bmr * 1.725)
+                else:
+                    revision.calorias_diarias_recomendadas = 0
+            else:
+                revision.calorias_diarias_recomendadas = 0
 
     @api.depends('peso', 'cliente_id.altura')
     def _compute_imc(self):

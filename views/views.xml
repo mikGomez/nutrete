@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Definición de menús -->
+    <!-- menús -->
     <menuitem id="menu_nutrete" name="Nutrete" sequence="10"/>
-    <!-- Menús secundarios -->
-    <menuitem id="menu_clientes" name="Clientes" parent="menu_nutrete" sequence="10"/>
+    <!-- SubMenus -->
     <menuitem id="menu_dietistas" name="Dietistas" parent="menu_nutrete" sequence="20"/>
     <menuitem id="menu_nutricionistas" name="Nutricionistas" parent="menu_nutrete" sequence="30"/>
     <menuitem id="menu_dietas" name="Dietas" parent="menu_nutrete" sequence="40"/>
     <menuitem id="menu_talleres" name="Talleres" parent="menu_nutrete" sequence="50"/>
-    
-    <!-- Definición de acciones -->
-    <!-- Acción para el modelo de nutrete.cliente -->
-    <record id="action_clientes" model="ir.actions.act_window">
-        <field name="name">Clientes</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.cliente</field>
-        <field name="view_mode">tree,form</field>
-    </record>
 
+    <!-- acciones -->
     <!-- Acción para el modelo de nutrete.dietista -->
     <record id="action_dietistas" model="ir.actions.act_window">
         <field name="name">Dietistas</field>
@@ -50,44 +41,8 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <!-- Definición de vistas -->
-    <!-- Vista de árbol para el modelo nutrete.cliente -->
-    <record id="view_cliente_tree" model="ir.ui.view">
-        <field name="name">cliente.tree</field>
-        <field name="model">nutrete.cliente</field>
-        <field name="arch" type="xml">
-            <tree>
-                <field name="name"/>
-                <field name="dni"/>
-                <field name="foto"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- Vista de formulario para el modelo nutrete.cliente -->
-    <record id="view_cliente_form" model="ir.ui.view">
-        <field name="name">cliente.form</field>
-        <field name="model">nutrete.cliente</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="dni"/>
-                        <field name="foto"/>
-                        <field name="historial"/>
-                        <field name="motivo_consulta"/>
-                        <field name="fecha_nacimiento"/>
-                        <field name="peso"/>
-                        <field name="altura"/>
-                        <field name="imc"/>
-                        <field name="edad"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-    <!-- Vista de formulario para el modelo nutrete.revision -->
+    <!-- vistas -->
+   <!-- Vista form modelo nutrete.revision -->
     <record id="view_revision_form" model="ir.ui.view">
         <field name="name">revision.form</field>
         <field name="model">nutrete.revision</field>
@@ -104,22 +59,34 @@
                         <field name="cliente_id"/>
                         <field name="imc"/>
                         <field name="edad"/>
+                        <field name="actividad_fisica"/>
+                        <field name="calorias_diarias_recomendadas"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+<!-- Vista form modelo nutrete.dieta -->
+    <record id="view_dieta_form" model="ir.ui.view">
+        <field name="name">dieta.form</field>
+        <field name="model">nutrete.dieta</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="cliente_id"/>
+                        <field name="nutricionista_id"/>
+                        <field name="dietista_id"/>
+                        <field name="revision_ids"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Definición de acciones de menú -->
-    <!-- Acción de menú para el modelo de nutrete.cliente -->
-    <record id="action_menu_clientes" model="ir.actions.act_window">
-        <field name="name">Clientes</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.cliente</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <menuitem id="menu_cliente_action" name="Clientes" parent="menu_nutrete" action="action_menu_clientes"/>
 
+
+    <!-- acciones de menú -->
     <!-- Acción de menú para el modelo de nutrete.dietista -->
     <record id="action_menu_dietistas" model="ir.actions.act_window">
         <field name="name">Dietistas</field>
@@ -155,65 +122,62 @@
         <field name="view_mode">tree,form</field>
     </record>
     <menuitem id="menu_taller_action" name="Talleres" parent="menu_nutrete" action="action_menu_talleres"/>
-    
-    <!-- Definición de permisos de acceso -->
-    <record id="access_nutrete_clientes" model="ir.model.access">
-        <field name="name">Access Nutrete Clientes</field>
-        <field name="model_id" ref="model_nutrete_cliente"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+
+    <!-- CLIENTE -->
+    <record model="ir.ui.view" id="nutrete.cliente_form">
+        <field name="name">nutrete cliente form</field>
+        <field name="model">nutrete.cliente</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook/page[@name='internal_notes']" position="after">
+                <page name="clientes" string="Clientes" attrs="{'invisible':[('is_cliente', '=', False)]}">
+                    <group>
+                        <group>
+                            <field name="is_cliente" attrs="{'invisible':True}"/>
+                            <field name="dni"/>
+                            <field name="historial"/>
+                            <field name="motivo_consulta"/>
+                            <field name="fecha_nacimiento"/>
+                            <field name="peso"/>
+                            <field name="altura"/>
+                            <field name="imc"/>
+                            <field name="edad"/>
+                            <field name="sexo"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
     </record>
 
-    <record id="access_nutrete_dietistas" model="ir.model.access">
-        <field name="name">Access Nutrete Dietistas</field>
-        <field name="model_id" ref="model_nutrete_dietista"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+    <!-- Acción de ventana clientes -->
+    <record model="ir.actions.act_window" id="nutrete.action_cliente_window">
+        <field name="name">Clientes de Nutrete</field>
+        <field name="res_model">nutrete.cliente</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_cliente', '=', True)]</field>
+        <field name="context">{'default_is_cliente': True}</field>
     </record>
 
-    <record id="access_nutrete_nutricionistas" model="ir.model.access">
-        <field name="name">Access Nutrete Nutricionistas</field>
-        <field name="model_id" ref="model_nutrete_nutricionista"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+    <!-- Vista árbol clientes -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_cliente_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="base.view_partner_tree"/>
+        <field name="act_window_id" ref="nutrete.action_cliente_window"/>
     </record>
 
-    <record id="access_nutrete_dietas" model="ir.model.access">
-        <field name="name">Access Nutrete Dietas</field>
-        <field name="model_id" ref="model_nutrete_dieta"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+    <!-- Vista form cliente -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_cliente_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="nutrete.cliente_form"/>
+        <field name="act_window_id" ref="nutrete.action_cliente_window"/>
     </record>
 
-    <record id="access_nutrete_revisiones" model="ir.model.access">
-        <field name="name">Access Nutrete Revisiones</field>
-        <field name="model_id" ref="model_nutrete_revision"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-    </record>
-
-    <record id="access_nutrete_talleres" model="ir.model.access">
-        <field name="name">Access Nutrete Talleres</field>
-        <field name="model_id" ref="model_nutrete_taller"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
-    </record>
+    <!-- Menu de Cliente -->
+    <menuitem name="Clientes" id="nutrete.menu_clientes_list" parent="menu_nutrete" action="nutrete.action_cliente_window"/>
+    <!-- FIN CLIENTE -->
+      
 </odoo>
