@@ -3,28 +3,10 @@
     <!-- menús -->
     <menuitem id="menu_nutrete" name="Nutrete" sequence="10"/>
     <!-- SubMenus -->
-    <menuitem id="menu_dietistas" name="Dietistas" parent="menu_nutrete" sequence="20"/>
-    <menuitem id="menu_nutricionistas" name="Nutricionistas" parent="menu_nutrete" sequence="30"/>
     <menuitem id="menu_dietas" name="Dietas" parent="menu_nutrete" sequence="40"/>
     <menuitem id="menu_talleres" name="Talleres" parent="menu_nutrete" sequence="50"/>
 
     <!-- acciones -->
-    <!-- Acción para el modelo de nutrete.dietista -->
-    <record id="action_dietistas" model="ir.actions.act_window">
-        <field name="name">Dietistas</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.dietista</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <!-- Acción para el modelo de nutrete.nutricionista -->
-    <record id="action_nutricionistas" model="ir.actions.act_window">
-        <field name="name">Nutricionistas</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.nutricionista</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
     <!-- Acción para el modelo de nutrete.dieta -->
     <record id="action_dietas" model="ir.actions.act_window">
         <field name="name">Dietas</field>
@@ -83,28 +65,7 @@
             </form>
         </field>
     </record>
-
-
-
     <!-- acciones de menú -->
-    <!-- Acción de menú para el modelo de nutrete.dietista -->
-    <record id="action_menu_dietistas" model="ir.actions.act_window">
-        <field name="name">Dietistas</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.dietista</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <menuitem id="menu_dietista_action" name="Dietistas" parent="menu_nutrete" action="action_menu_dietistas"/>
-
-    <!-- Acción de menú para el modelo de nutrete.nutricionista -->
-    <record id="action_menu_nutricionistas" model="ir.actions.act_window">
-        <field name="name">Nutricionistas</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">nutrete.nutricionista</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <menuitem id="menu_nutricionista_action" name="Nutricionistas" parent="menu_nutrete" action="action_menu_nutricionistas"/>
-
     <!-- Acción de menú para el modelo de nutrete.dieta -->
     <record id="action_menu_dietas" model="ir.actions.act_window">
         <field name="name">Dietas</field>
@@ -123,10 +84,11 @@
     </record>
     <menuitem id="menu_taller_action" name="Talleres" parent="menu_nutrete" action="action_menu_talleres"/>
 
+    <menuitem name="Personas Nutrete" id="nutrete.persona" parent="menu_nutrete"/>
     <!-- CLIENTE -->
     <record model="ir.ui.view" id="nutrete.cliente_form">
         <field name="name">nutrete cliente form</field>
-        <field name="model">nutrete.cliente</field>
+        <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="mode">primary</field>
         <field name="arch" type="xml">
@@ -154,7 +116,7 @@
     <!-- Acción de ventana clientes -->
     <record model="ir.actions.act_window" id="nutrete.action_cliente_window">
         <field name="name">Clientes de Nutrete</field>
-        <field name="res_model">nutrete.cliente</field>
+        <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('is_cliente', '=', True)]</field>
         <field name="context">{'default_is_cliente': True}</field>
@@ -177,7 +139,99 @@
     </record>
 
     <!-- Menu de Cliente -->
-    <menuitem name="Clientes" id="nutrete.menu_clientes_list" parent="menu_nutrete" action="nutrete.action_cliente_window"/>
+    <menuitem name="Clientes" id="nutrete.menu_clientes1" parent="nutrete.persona" action="nutrete.action_cliente_window"/>
     <!-- FIN CLIENTE -->
-      
+
+
+    <!-- DIETISTA -->
+    <menuitem name="Dietistas" id="nutrete.dietista" parent="menu_nutrete"/>
+    <record model="ir.ui.view" id="nutrete.dietista_form">
+        <field name="name">nutrete dietista form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook/page[@name='internal_notes']" position="after">
+                <page name="dietistas" string="Dietistas" attrs="{'invisible':[('is_dietista', '=', True)]}">
+                    <group>
+                        <group>
+                            <field name="is_dietista" attrs="{'invisible':True}"/>
+                            <field name="dni"/>
+                            <field name="name"/>
+                            <field name="especialidad"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <!-- Acción de ventana dietistas -->
+    <record model="ir.actions.act_window" id="nutrete.action_dietista_window">
+        <field name="name">Dietistas de Nutrete</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- Vista árbol dietistas -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_dietista_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="base.view_partner_tree"/>
+        <field name="act_window_id" ref="nutrete.action_dietista_window"/>
+    </record>
+    <!-- Vista form dietista -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_dietista_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="nutrete.dietista_form"/>
+        <field name="act_window_id" ref="nutrete.action_dietista_window"/>
+    </record>
+    <!-- Menu de Dietistas -->
+    <menuitem name="Dietistas" id="nutrete.menu_dietistas" parent="nutrete.persona" action="nutrete.action_dietista_window"/>
+    <!-- FIN DIETISTA -->
+
+    <!-- NUTRICIONISTA -->
+    <menuitem name="Nutricionistas" id="nutrete.nutricionista" parent="menu_nutrete"/>
+    <record model="ir.ui.view" id="nutrete.nutricionista_form">
+        <field name="name">nutrete nutricionista form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook/page[@name='internal_notes']" position="after">
+                <page name="nutricionistas" string="Nutricionistas" attrs="{'invisible':[('is_nutricionista', '=', True)]}">
+                    <group>
+                        <group>
+                            <field name="is_nutricionista" attrs="{'invisible':True}"/>
+                            <field name="dni"/>
+                            <field name="name"/>
+                            <field name="especialidad"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <!-- Acción de ventana nutricionistas -->
+    <record model="ir.actions.act_window" id="nutrete.action_nutricionista_window">
+        <field name="name">Nutricionistas de Nutrete</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- Vista árbol nutricionistas -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_nutricionista_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="base.view_partner_tree"/>
+        <field name="act_window_id" ref="nutrete.action_nutricionista_window"/>
+    </record>
+    <!-- Vista form nutricionista -->
+    <record model="ir.actions.act_window.view" id="nutrete.action_view_nutricionista_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="nutrete.nutricionista_form"/>
+        <field name="act_window_id" ref="nutrete.action_nutricionista_window"/>
+    </record>
+    <!-- Menu de Nutricionistas -->
+    <menuitem name="Nutricionistas" id="nutrete.menu_nutricionistas" parent="nutrete.persona" action="nutrete.action_nutricionista_window"/>
+    <!-- FIN NUTRICIONISTA -->
 </odoo>

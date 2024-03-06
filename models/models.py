@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# -*- coding: utf-8 -*-
-
-
-
-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from odoo import _
@@ -13,7 +8,7 @@ import logging
 import re
 
 class Cliente(models.Model):
-    _name = 'nutrete.cliente'
+    _name = 'res.partner'
     _inherit = 'res.partner'
     is_cliente = fields.Boolean()
 
@@ -30,7 +25,24 @@ class Cliente(models.Model):
         ('femenino', 'Femenino'),
         ('otro', 'Otro')
     ], string="Sexo")
-    
+    @api.constrains('dni')
+    def _check_code(self):
+        regex = re.compile('^[0-9]{8}[a-z]$', re.I)
+        for clie in self:
+            if not regex.match(clie.dni):
+                raise ValidationError('Formato de DNI incorrecto')
+
+    _sql_constraints = [('dni_unique', 'unique(dni)', 'DNI ya existente.')]
+
+    @api.constrains('altura')
+    def _check_code2(self):
+        for alt in self:
+            if alt.altura > 0:
+                logging.Logger.info('Altura correctamente')
+            else:
+                raise ValidationError('Formato altura incorrecto')
+            
+    _sql_constraints = [('dni_unique', 'unique(dni)', 'DNI ya existente.')]
     @api.onchange('is_cliente')
     def _onchange_is_dev(self):
         categories = self.env['res.partner.category'].search([('name','=','Cliente')])
@@ -53,7 +65,7 @@ class Cliente(models.Model):
 
     @api.depends('fecha_nacimiento')
     def _compute_edad(self):
-        today = datetime.today()
+        today = datetime.datetime.today()
         for cliente in self:
             try:
                 if cliente.fecha_nacimiento:
@@ -66,8 +78,10 @@ class Cliente(models.Model):
                 cliente.edad = 0
 
 class Dietista(models.Model):
-    _name = 'nutrete.dietista'
+    _name = 'res.partner'
     _description = 'Dietista de Nutrete'
+    _inherit = 'res.partner'
+    is_dietista = fields.Boolean()
 
     name = fields.Char(string="Nombre")
     dni = fields.Char(string="DNI")
@@ -77,11 +91,21 @@ class Dietista(models.Model):
                                      ('hipocalorica', 'Dieta Hipocalórica'),
                                      ('proteica', 'Dieta Proteica')],
                                     string="Especialidad")
+    @api.onchange('is_dietista')
+    def _onchange_is_dev(self):
+        categories = self.env['res.partner.category'].search([('name','=','Dietista')])
+        if len(categories) > 0:
+            category = categories[0]
+        else:
+            category = self.env['res.partner.category'].create({'name':'Dietista'})
+        self.category_id = [(4, category.id)] 
 
 
 class Nutricionista(models.Model):
-    _name = 'nutrete.nutricionista'
+    _name = 'res.partner'
     _description = 'Nutricionista de Nutrete'
+    _inherit = 'res.partner'
+    is_nutricionista = fields.Boolean()
 
     name = fields.Char(string="Nombre")
     dni = fields.Char(string="DNI")
@@ -89,13 +113,20 @@ class Nutricionista(models.Model):
                                      ('pediatrica', 'Nutrición Pediátrica'),
                                      ('clinica', 'Nutrición Clínica')],
                                     string="Especialidad")
-
+    @api.onchange('is_nutricionista')
+    def _onchange_is_dev(self):
+        categories = self.env['res.partner.category'].search([('name','=','Nutricionista')])
+        if len(categories) > 0:
+            category = categories[0]
+        else:
+            category = self.env['res.partner.category'].create({'name':'Nutricionista'})
+        self.category_id = [(4, category.id)] 
 
 class Dieta(models.Model):
     _name = 'nutrete.dieta'
     _description = 'Dieta de Nutrete'
 
-    cliente_id = fields.Many2one('nutrete.cliente', string="Cliente")
+    cliente_id = fields.Many2one('res.partner', string="Cliente")
     nutricionista_id = fields.Many2one('nutrete.nutricionista', string="Nutricionista")
     dietista_id = fields.Many2one('nutrete.dietista', string="Dietista")
     revision_ids = fields.One2many('nutrete.revision', 'dieta_id', string="Revisiones")
@@ -120,7 +151,7 @@ class Revision(models.Model):
                                    ('regular', 'Regular'),
                                    ('mala', 'Mala')],
                                   string="Evolución")
-    cliente_id = fields.Many2one('nutrete.cliente', related='dieta_id.cliente_id', store=True)
+    cliente_id = fields.Many2one('res.partner', related='dieta_id.cliente_id', store=True)
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
     calorias_diarias_recomendadas = fields.Integer(string="Calorías Diarias Recomendadas", compute='_compute_calorias_diarias', store=True)
@@ -176,6 +207,6 @@ class Taller(models.Model):
     hora = fields.Float(string="Hora")
     nutricionista_id = fields.Many2one('nutrete.nutricionista', string="Nutricionista")
     dietista_id = fields.Many2one('nutrete.dietista', string="Dietista")
-    cliente_ids = fields.Many2many('nutrete.cliente', string="Clientes")
+    cliente_ids = fields.Many2many('res.partner', string="Clientes")
     link = fields.Char(string="Enlace")
 

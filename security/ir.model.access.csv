@@ -1,7 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_nutrete_clientes,Access Nutrete Clientes,model_nutrete_cliente,base.group_user,1,1,1,1
-access_nutrete_dietistas,Access Nutrete Dietistas,model_nutrete_dietista,base.group_user,1,1,1,1
-access_nutrete_nutricionistas,Access Nutrete Nutricionistas,model_nutrete_nutricionista,base.group_user,1,1,1,1
 access_nutrete_dietas,Access Nutrete Dietas,model_nutrete_dieta,base.group_user,1,1,1,1
 access_nutrete_revisiones,Access Nutrete Revisiones,model_nutrete_revision,base.group_user,1,1,1,1
 access_nutrete_talleres,Access Nutrete Talleres,model_nutrete_taller,base.group_user,1,1,1,1
