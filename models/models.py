@@ -160,7 +160,7 @@ class Revision(models.Model):
     def _compute_calorias_diarias(self):
         for revision in self:
             if revision.cliente_id and revision.peso and revision.actividad_fisica:
-                # Cálculo de calorías diarias recomendadas basado en la fórmula de Harris-Benedict
+                # Cálculo de calorías
                 if revision.cliente_id.sexo == 'masculino':
                     bmr = 88.362 + (13.397 * revision.peso) + (4.799 * revision.cliente_id.altura) - (5.677 * revision.edad)
                 else:
