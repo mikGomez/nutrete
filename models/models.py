@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from odoo import _
-import datetime
 import logging
 import re
 
@@ -65,7 +65,7 @@ class Cliente(models.Model):
 
     @api.depends('fecha_nacimiento')
     def _compute_edad(self):
-        today = datetime.datetime.today()
+        today = datetime.today()
         for cliente in self:
             try:
                 if cliente.fecha_nacimiento:
