@@ -37,12 +37,9 @@ class Cliente(models.Model):
     @api.constrains('altura')
     def _check_code2(self):
         for alt in self:
-            if alt.altura > 0:
-                logging.Logger.info('Altura correctamente')
-            else:
-                raise ValidationError('Formato altura incorrecto')
-            
-    _sql_constraints = [('dni_unique', 'unique(dni)', 'DNI ya existente.')]
+            if alt.altura <= 0:
+                raise ValidationError(_('Formato altura incorrecto'))
+
     @api.onchange('is_cliente')
     def _onchange_is_dev(self):
         categories = self.env['res.partner.category'].search([('name','=','Cliente')])
