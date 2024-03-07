@@ -38,7 +38,7 @@
                         <field name="peso"/>
                         <field name="comentarios"/>
                         <field name="evolucion"/>
-                        <field name="cliente_id"/>
+                        <field name="cliente_id" ></field>
                         <field name="imc"/>
                         <field name="edad"/>
                         <field name="actividad_fisica"/>
@@ -56,15 +56,54 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="cliente_id"/>
-                        <field name="nutricionista_id"/>
-                        <field name="dietista_id"/>
+                        <field 
+                        name="cliente_id" 
+                        domain="[('is_cliente','=',True)]" 
+                        context="{'form_view_ref':'nutrete.cliente_form', 'default_is_cliente':True}"></field>
+                        <field 
+                        name="nutricionista_id" 
+                        domain="[('is_nutricionista','=',True)]" 
+                        context="{'form_view_ref':'nutrete.nutricionista_form', 'default_is_nutricionista':True}"></field>
+                        <field 
+                        name="dietista_id" 
+                        domain="[('is_dietista','=',True)]" 
+                        context="{'form_view_ref':'nutrete.dietista_form', 'default_is_dietista':True}"></field>
                         <field name="revision_ids"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+<!-- Vista form modelo nutrete.taller -->
+<record id="view_taller_form" model="ir.ui.view">
+    <field name="name">taller.form</field>
+    <field name="model">nutrete.taller</field>
+    <field name="arch" type="xml">
+        <form string="Taller de Nutrete">
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="fecha"/>
+                    <field name="hora"/>
+                    <field 
+                    name="nutricionista_id" 
+                    domain="[('is_nutricionista','=',True)]" 
+                    context="{'form_view_ref':'nutrete.nutricionista_form', 'default_is_nutricionista':True}"></field>
+                    <field 
+                    name="dietista_id" 
+                    domain="[('is_dietista','=',True)]" 
+                    context="{'form_view_ref':'nutrete.dietista_form', 'default_is_dietista':True}"></field>
+                    <field 
+                        name="cliente_ids" 
+                        domain="[('is_cliente','=',True)]" 
+                        context="{'form_view_ref':'nutrete.cliente_form', 'default_is_cliente':True}"
+                        ></field>
+                    <field name="link"/>
+                </group>
+            </sheet>
+        </form>
+    </field>
+</record>
     <!-- acciones de menú -->
     <!-- Acción de menú para el modelo de nutrete.dieta -->
     <record id="action_menu_dietas" model="ir.actions.act_window">

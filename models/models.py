@@ -17,7 +17,7 @@ class Cliente(models.Model):
     motivo_consulta = fields.Text(string="Motivo de Consulta")
     fecha_nacimiento = fields.Date(string="Fecha de Nacimiento")
     peso = fields.Float(string="Peso")
-    altura = fields.Float(string="Altura")
+    altura = fields.Float(default=1.65,string="Altura")
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
     sexo = fields.Selection([
@@ -38,10 +38,15 @@ class Cliente(models.Model):
     def _check_code2(self):
         for alt in self:
             if alt.altura <= 0:
-                raise ValidationError(_('Formato altura incorrecto'))
+                raise ValidationError(_('Formato altura incorrecto, tiene que ser mayor que 0'))
+    @api.constrains('peso')
+    def _check_code3(self):
+        for pes in self:
+            if pes.peso <= 0:
+                raise ValidationError(_('Formato Peso incorrecto, tiene que ser mayor que 0'))
 
     @api.onchange('is_cliente')
-    def _onchange_is_dev(self):
+    def _onchange_is_cliente(self):
         categories = self.env['res.partner.category'].search([('name','=','Cliente')])
         if len(categories) > 0:
             category = categories[0]
@@ -88,8 +93,21 @@ class Dietista(models.Model):
                                      ('hipocalorica', 'Dieta Hipocalórica'),
                                      ('proteica', 'Dieta Proteica')],
                                     string="Especialidad")
+    @api.constrains('especialidad')
+    def _check_especialidad(self):
+        for diet in self:
+            if not diet.especialidad:
+                raise ValidationError('La especialidad debe ser seleccionada')
+    @api.constrains('dni')
+    def _check_code(self):
+        regex = re.compile('^[0-9]{8}[a-z]$', re.I)
+        for die in self:
+            if not regex.match(die.dni):
+                raise ValidationError('Formato de DNI incorrecto')
+    _sql_constraints = [('dni_unique', 'unique(dni)', 'DNI ya existente.')]
+        
     @api.onchange('is_dietista')
-    def _onchange_is_dev(self):
+    def _onchange_is_dietista(self):
         categories = self.env['res.partner.category'].search([('name','=','Dietista')])
         if len(categories) > 0:
             category = categories[0]
@@ -110,8 +128,16 @@ class Nutricionista(models.Model):
                                      ('pediatrica', 'Nutrición Pediátrica'),
                                      ('clinica', 'Nutrición Clínica')],
                                     string="Especialidad")
+    @api.constrains('dni')
+    def _check_code(self):
+        regex = re.compile('^[0-9]{8}[a-z]$', re.I)
+        for nutri in self:
+            if not regex.match(nutri.dni):
+                raise ValidationError('Formato de DNI incorrecto')
+    _sql_constraints = [('dni_unique', 'unique(dni)', 'DNI ya existente.')]
+
     @api.onchange('is_nutricionista')
-    def _onchange_is_dev(self):
+    def _onchange_is_nutricionista(self):
         categories = self.env['res.partner.category'].search([('name','=','Nutricionista')])
         if len(categories) > 0:
             category = categories[0]
@@ -124,8 +150,8 @@ class Dieta(models.Model):
     _description = 'Dieta de Nutrete'
 
     cliente_id = fields.Many2one('res.partner', string="Cliente")
-    nutricionista_id = fields.Many2one('nutrete.nutricionista', string="Nutricionista")
-    dietista_id = fields.Many2one('nutrete.dietista', string="Dietista")
+    nutricionista_id = fields.Many2one('res.partner', string="Nutricionista")
+    dietista_id = fields.Many2one('res.partner', string="Dietista")
     revision_ids = fields.One2many('nutrete.revision', 'dieta_id', string="Revisiones")
 
 
@@ -138,11 +164,11 @@ class Revision(models.Model):
     dieta_id = fields.Many2one('nutrete.dieta', string="Dieta")
     peso = fields.Float(string="Peso")
     comentarios = fields.Text(string="Comentarios")
-    actividad_fisica = fields.Selection([('sedentario', 'Sedentario'),
-                                        ('ligero', 'Ligero'),
-                                        ('moderado', 'Moderado'),
-                                        ('activo', 'Activo')],
-                                        string="Actividad Física")
+    actividad_fisica = fields.Selection([
+    ('sedentario', 'Sedentario'),
+    ('activo', 'Activo'),
+    ('elite', 'Elite')
+], string="Actividad Física")
     evolucion = fields.Selection([('excelente', 'Excelente'),
                                    ('buena', 'Buena'),
                                    ('regular', 'Regular'),
@@ -157,7 +183,6 @@ class Revision(models.Model):
     def _compute_calorias_diarias(self):
         for revision in self:
             if revision.cliente_id and revision.peso and revision.actividad_fisica:
-                # Cálculo de calorías
                 if revision.cliente_id.sexo == 'masculino':
                     bmr = 88.362 + (13.397 * revision.peso) + (4.799 * revision.cliente_id.altura) - (5.677 * revision.edad)
                 else:
@@ -165,12 +190,10 @@ class Revision(models.Model):
                 
                 if revision.actividad_fisica == 'sedentario':
                     revision.calorias_diarias_recomendadas = int(bmr * 1.2)
-                elif revision.actividad_fisica == 'ligero':
-                    revision.calorias_diarias_recomendadas = int(bmr * 1.375)
-                elif revision.actividad_fisica == 'moderado':
-                    revision.calorias_diarias_recomendadas = int(bmr * 1.55)
                 elif revision.actividad_fisica == 'activo':
                     revision.calorias_diarias_recomendadas = int(bmr * 1.725)
+                elif revision.actividad_fisica == 'elite':
+                    revision.calorias_diarias_recomendadas = int(bmr * 1.9)  # Se ajusta el factor para la actividad 'elite'
                 else:
                     revision.calorias_diarias_recomendadas = 0
             else:
@@ -202,8 +225,8 @@ class Taller(models.Model):
     name = fields.Char(string="Nombre del Taller")
     fecha = fields.Date(string="Fecha")
     hora = fields.Float(string="Hora")
-    nutricionista_id = fields.Many2one('nutrete.nutricionista', string="Nutricionista")
-    dietista_id = fields.Many2one('nutrete.dietista', string="Dietista")
+    nutricionista_id = fields.Many2one('res.partner', string="Nutricionista")
+    dietista_id = fields.Many2one('res.partner', string="Dietista")
     cliente_ids = fields.Many2many('res.partner', string="Clientes")
     link = fields.Char(string="Enlace")
 
