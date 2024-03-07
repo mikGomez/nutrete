@@ -15,8 +15,8 @@ class Cliente(models.Model):
     dni = fields.Char(string="DNI")
     historial = fields.Text(string="Historial")
     motivo_consulta = fields.Text(string="Motivo de Consulta")
-    fecha_nacimiento = fields.Date(string="Fecha de Nacimiento")
-    peso = fields.Float(string="Peso")
+    fecha_nacimiento = fields.Date( default=datetime(1990, 12, 5),string="Fecha de Nacimiento")
+    peso = fields.Float(default=55.00,string="Peso")
     altura = fields.Float(default=1.65,string="Altura")
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
@@ -24,7 +24,7 @@ class Cliente(models.Model):
         ('masculino', 'Masculino'),
         ('femenino', 'Femenino'),
         ('otro', 'Otro')
-    ], string="Sexo")
+    ], string="Sexo", default='femenino')
     @api.constrains('dni')
     def _check_code(self):
         regex = re.compile('^[0-9]{8}[a-z]$', re.I)
@@ -92,7 +92,7 @@ class Dietista(models.Model):
                                      ('detox', 'Dieta Detox'),
                                      ('hipocalorica', 'Dieta Hipocalórica'),
                                      ('proteica', 'Dieta Proteica')],
-                                    string="Especialidad")
+                                    string="Especialidad",default='proteica')
     @api.constrains('especialidad')
     def _check_especialidad(self):
         for diet in self:
@@ -127,7 +127,7 @@ class Nutricionista(models.Model):
     especialidad = fields.Selection([('deportiva', 'Nutrición Deportiva'),
                                      ('pediatrica', 'Nutrición Pediátrica'),
                                      ('clinica', 'Nutrición Clínica')],
-                                    string="Especialidad")
+                                    string="Especialidad",default='deportiva')
     @api.constrains('dni')
     def _check_code(self):
         regex = re.compile('^[0-9]{8}[a-z]$', re.I)
