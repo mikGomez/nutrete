@@ -12,7 +12,7 @@ class Cliente(models.Model):
     _inherit = 'res.partner'
     is_cliente = fields.Boolean()
 
-    dni = fields.Char(string="DNI")
+    dni = fields.Char(string="DNI", required=True)
     historial = fields.Text(string="Historial")
     motivo_consulta = fields.Text(string="Motivo de Consulta")
     fecha_nacimiento = fields.Date( default=datetime(1990, 12, 5),string="Fecha de Nacimiento")
@@ -86,7 +86,7 @@ class Dietista(models.Model):
     is_dietista = fields.Boolean()
 
     name = fields.Char(string="Nombre")
-    dni = fields.Char(string="DNI")
+    dni = fields.Char(string="DNI", required=True)
     especialidad = fields.Selection([('vegetariana', 'Dieta Vegetariana'),
                                      ('paleo', 'Dieta Paleo'),
                                      ('detox', 'Dieta Detox'),
@@ -122,7 +122,7 @@ class Nutricionista(models.Model):
     _inherit = 'res.partner'
     is_nutricionista = fields.Boolean()
 
-    name = fields.Char(string="Nombre")
+    name = fields.Char(string="Nombre", required=True)
     dni = fields.Char(string="DNI")
     especialidad = fields.Selection([('deportiva', 'Nutrición Deportiva'),
                                      ('pediatrica', 'Nutrición Pediátrica'),
@@ -160,20 +160,20 @@ class Revision(models.Model):
     _description = 'Revisión de Dieta'
 
     fecha = fields.Date(string="Fecha")
-    hora = fields.Float(string="Hora")
+    hora = fields.Float(default=17.00,string="Hora")
     dieta_id = fields.Many2one('nutrete.dieta', string="Dieta")
-    peso = fields.Float(string="Peso")
+    peso = fields.Float(default=55.00,string="Peso")
     comentarios = fields.Text(string="Comentarios")
     actividad_fisica = fields.Selection([
     ('sedentario', 'Sedentario'),
     ('activo', 'Activo'),
     ('elite', 'Elite')
-], string="Actividad Física")
+], string="Actividad Física",default ='activo')
     evolucion = fields.Selection([('excelente', 'Excelente'),
                                    ('buena', 'Buena'),
                                    ('regular', 'Regular'),
                                    ('mala', 'Mala')],
-                                  string="Evolución")
+                                  string="Evolución",default='buena')
     cliente_id = fields.Many2one('res.partner', related='dieta_id.cliente_id', store=True)
     imc = fields.Float(string="IMC", compute='_compute_imc', store=True)
     edad = fields.Integer(string="Edad", compute='_compute_edad', store=True)
@@ -224,7 +224,7 @@ class Taller(models.Model):
 
     name = fields.Char(string="Nombre del Taller")
     fecha = fields.Date(string="Fecha")
-    hora = fields.Float(string="Hora")
+    hora = fields.Float(default=16.00,string="Hora")
     nutricionista_id = fields.Many2one('res.partner', string="Nutricionista")
     dietista_id = fields.Many2one('res.partner', string="Dietista")
     cliente_ids = fields.Many2many('res.partner', string="Clientes")

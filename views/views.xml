@@ -68,12 +68,50 @@
                         name="dietista_id" 
                         domain="[('is_dietista','=',True)]" 
                         context="{'form_view_ref':'nutrete.dietista_form', 'default_is_dietista':True}"></field>
-                        <field name="revision_ids"/>
+                        <field name="revision_ids">
+                            <tree>
+                                <field name="fecha"/>
+                                <field name="hora"/>
+                                <field name="peso"/>
+                                <field name="comentarios"/>
+                                <field name="actividad_fisica"/>
+                                <field name="evolucion"/>
+                                <field name="imc"/>
+                                <field name="edad"/>
+                                <field name="calorias_diarias_recomendadas"/>
+                            </tree>
+                        </field>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+    <!-- Vista tree modelo nutrete.dieta -->
+    <record id="view_dieta_tree" model="ir.ui.view">
+        <field name="name">dieta.tree</field>
+        <field name="model">nutrete.dieta</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="cliente_id"/>
+                <field name="nutricionista_id"/>
+                <field name="dietista_id"/>
+                <field name="revision_ids" string="Revisiones" widget="one2many_list">
+                    <tree>
+                        <field name="fecha"/>
+                        <field name="hora"/>
+                        <field name="peso"/>
+                        <field name="comentarios"/>
+                        <field name="actividad_fisica"/>
+                        <field name="evolucion"/>
+                        <field name="imc"/>
+                        <field name="edad"/>
+                        <field name="calorias_diarias_recomendadas"/>
+                    </tree>
+                </field>
+            </tree>
+        </field>
+    </record>
+
 <!-- Vista form modelo nutrete.taller -->
 <record id="view_taller_form" model="ir.ui.view">
     <field name="name">taller.form</field>
@@ -104,6 +142,23 @@
         </form>
     </field>
 </record>
+<!-- Vista tree modelo nutrete.taller -->
+<record id="view_taller_tree" model="ir.ui.view">
+    <field name="name">taller.tree</field>
+    <field name="model">nutrete.taller</field>
+    <field name="arch" type="xml">
+        <tree>
+            <field name="name"/>
+            <field name="fecha"/>
+            <field name="hora"/>
+            <field name="nutricionista_id"/>
+            <field name="dietista_id"/>
+            <field name="cliente_ids" string="Clientes" widget="many2many_tags"/>
+            <field name="link"/>
+        </tree>
+    </field>
+</record>
+
     <!-- acciones de menú -->
     <!-- Acción de menú para el modelo de nutrete.dieta -->
     <record id="action_menu_dietas" model="ir.actions.act_window">
